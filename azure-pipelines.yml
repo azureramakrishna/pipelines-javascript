@@ -56,4 +56,4 @@ stages:
               script: |
                 # Modify deployment script based on the app type
                 echo "Starting deployment script run"
-                sudo java -jar '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+                sudo npm start '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
