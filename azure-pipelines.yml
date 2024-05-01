@@ -35,25 +35,51 @@ stages:
     - upload: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
       artifact: drop
 
-- stage: deploy
-  jobs:
-  - deployment: DeployWeb
-    displayName: deploy Web App
-    pool:
-      vmImage: 'Ubuntu-latest'
-    # creates an environment if it doesn't exist
-    environment: 
-      name: 'dev'
-      resourceName: dev-vm
-      resourceType: virtualMachine
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: Bash@3
-            inputs:
-              targetType: 'inline'
-              script: |
-                # Modify deployment script based on the app type
-                echo "Starting deployment script run"
-                sudo npm start '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+# - stage: deploy
+#   jobs:
+#   - deployment: DeployWeb
+#     displayName: deploy Web App
+#     pool:
+#       vmImage: 'Ubuntu-latest'
+#     # creates an environment if it doesn't exist
+#     environment: 
+#       name: 'dev'
+#       resourceName: dev-vm
+#       resourceType: virtualMachine
+#     strategy:
+#       runOnce:
+#         deploy:
+#           steps:
+#           - task: Bash@3
+#             inputs:
+#               targetType: 'inline'
+#               script: |
+#                 # Modify deployment script based on the app type
+#                 echo "Starting deployment script run"
+#                 sudo npm start '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+
+- stage: Release
+    displayName: 'Release stage'
+    jobs:
+    - deployment: Deploy
+      displayName: 'Deploy job'
+      pool:
+        vmImage: 'ubuntu-latest'
+      environment: 'your-environment-name'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - download: current
+                artifact: drop
+                displayName: 'Download artifacts'
+
+              - task: SSH@0
+                inputs:
+                  sshEndpoint: 'your-ssh-service-connection'
+                  runOptions: 'inline'
+                  inline: |
+                    cd /path/to/your/application
+                    npm install --production
+                    npm run start
+                displayName: 'Deploy to Azure Linux VM'
